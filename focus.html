@@ -3,867 +3,803 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Focus Mode</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <title>Themed Productivity Checklist</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Orbitron:wght@400;700&family=Roboto+Condensed:wght@400;700&family=VT323&display=swap" rel="stylesheet">
     <style>
-        /* CSS Variables for theming */
-        :root {
-            --font-family-sans: 'Roboto', sans-serif;
-            --font-family-mono: 'Orbitron', sans-serif;
-
-            /* Classic Theme */
-            --classic-bg: #f4f7f6;
-            --classic-surface-bg: #ffffff;
-            --classic-text: #333333;
-            --classic-primary: #4a90e2;
-            --classic-primary-text: #ffffff;
-            --classic-accent: #50e3c2;
-            --classic-border: #dddddd;
-            --classic-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --classic-heatmap-empty: #ebedf0;
-            --classic-heatmap-low: #9be9a8;
-            --classic-heatmap-medium: #40c463;
-            --classic-heatmap-high: #30a14e;
-            --classic-heatmap-very-high: #216e39;
-
-            /* Batman Theme */
-            --batman-bg: #0d1117;
-            --batman-surface-bg: #161b22;
-            --batman-text: #c9d1d9;
-            --batman-primary: #f0b90b;
-            --batman-primary-text: #0d1117;
-            --batman-accent: #f0b90b;
-            --batman-border: #30363d;
-            --batman-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            --batman-heatmap-empty: #2d333b;
-            --batman-heatmap-low: #0e4429;
-            --batman-heatmap-medium: #006d32;
-            --batman-heatmap-high: #26a641;
-            --batman-heatmap-very-high: #39d353;
-        }
-
+        /* Base styles */
         body {
-            font-family: var(--font-family-sans);
-            transition: background-color 0.3s, color 0.3s;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
+            transition: background-color 0.5s, color 0.5s;
+        }
+        :root {
+            --theme-transition: all 0.3s ease-in-out;
         }
 
-        .classic-theme {
-            background-color: var(--classic-bg);
-            color: var(--classic-text);
-        }
+        /* Themes */
+        .theme-classic { --bg-primary: #FFFFFF; --bg-secondary: #F3F4F6; --text-primary: #1F2937; --text-secondary: #4B5563; --accent-primary: #3B82F6; --accent-secondary: #10B981; --border-color: #D1D5DB; font-family: 'VT323', monospace; }
+        .theme-wonder-woman { --bg-primary: #0A192F; --bg-secondary: #172A45; --text-primary: #CCD6F6; --text-secondary: #8892B0; --accent-primary: #F59E0B; --accent-secondary: #DC2626; --border-color: #233554; font-family: 'Cinzel', serif; }
+        .theme-iron-man { --bg-primary: #111827; --bg-secondary: #1F2937; --text-primary: #E5E7EB; --text-secondary: #9CA3AF; --accent-primary: #06B6D4; --accent-secondary: #EF4444; --border-color: #374151; font-family: 'Orbitron', sans-serif; }
+        .theme-batman { --bg-primary: #000000; --bg-secondary: #171717; --text-primary: #F5F5F5; --text-secondary: #A3A3A3; --accent-primary: #FDE047; --accent-secondary: #6B7280; --border-color: #404040; font-family: 'Roboto Condensed', sans-serif; }
 
-        .batman-theme {
-            background-color: var(--batman-bg);
-            color: var(--batman-text);
-        }
+        /* Dynamic styles */
+        .bg-primary { background-color: var(--bg-primary); transition: var(--theme-transition); }
+        .bg-secondary { background-color: var(--bg-secondary); transition: var(--theme-transition); }
+        .text-primary { color: var(--text-primary); transition: var(--theme-transition); }
+        .text-secondary { color: var(--text-secondary); transition: var(--theme-transition); }
+        .accent-primary { color: var(--accent-primary); transition: var(--theme-transition); }
+        .accent-secondary { color: var(--accent-secondary); transition: var(--theme-transition); }
+        .border-theme { border-color: var(--border-color); transition: var(--theme-transition); }
+        .btn-theme-primary { background-color: var(--accent-primary); color: var(--bg-primary); transition: var(--theme-transition); }
+        .btn-theme-secondary { background-color: var(--accent-secondary); color: var(--bg-primary); transition: var(--theme-transition); }
+        .hover-bg-primary:hover { background-color: var(--bg-primary); }
+        .hover-accent-primary:hover { color: var(--accent-primary); }
+
+        .checklist-item { border-left: 2px solid var(--border-color); padding-left: 1rem; margin-top: 0.5rem; transition: var(--theme-transition); }
+        .collapsible-icon { transition: transform 0.3s; }
+        .collapsed .collapsible-icon { transform: rotate(-90deg); }
+        .collapsed .children-container { display: none; }
+        .topic-checkbox:checked ~ .item-title, .subtopic-checkbox:checked ~ .item-title { text-decoration: line-through; color: var(--text-secondary); }
         
-        .app-container {
-            max-width: 1200px;
-            margin: auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-        }
+        /* Calendar Heatmap */
+        .heatmap-0 { background-color: transparent; }
+        .heatmap-1 { background-color: var(--accent-secondary); opacity: 0.4; }
+        .heatmap-2 { background-color: var(--accent-secondary); opacity: 0.6; }
+        .heatmap-3 { background-color: var(--accent-secondary); opacity: 0.8; }
+        .heatmap-4 { background-color: var(--accent-secondary); opacity: 1; }
 
-        .card {
-            border-radius: 12px;
-            padding: 20px;
-            transition: background-color 0.3s, box-shadow 0.3s;
-            display: flex;
-            flex-direction: column;
-        }
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .modal { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes celebration { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+        .celebrate { animation: celebration 0.8s ease-in-out; }
         
-        .full-width {
-            grid-column: 1 / -1;
-        }
-
-        .classic-theme .card {
-            background-color: var(--classic-surface-bg);
-            border: 1px solid var(--classic-border);
-            box-shadow: var(--classic-shadow);
-        }
-
-        .batman-theme .card {
-            background-color: var(--batman-surface-bg);
-            border: 1px solid var(--batman-border);
-            box-shadow: var(--batman-shadow);
-        }
-
-        h2 {
-            margin-top: 0;
-            font-family: var(--font-family-mono);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        h2 .date-display {
-            font-size: 0.9rem;
-            font-family: var(--font-family-sans);
-            font-weight: 400;
-        }
-
-        [contenteditable="true"] {
-            cursor: text;
-            padding: 2px 5px;
-            border-radius: 4px;
-        }
-        [contenteditable="true"]:focus {
-            outline: 2px solid var(--classic-primary);
-        }
-        .batman-theme [contenteditable="true"]:focus {
-            outline: 2px solid var(--batman-primary);
-        }
-
-
-        /* Theme Switcher */
-        .theme-switcher {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .theme-switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-        }
-
-        .theme-switch input { opacity: 0; width: 0; height: 0; }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        
-        .classic-theme .slider { background-color: #ccc; }
-        .batman-theme .slider { background-color: var(--batman-primary); }
-
-        input:checked + .slider:before { transform: translateX(26px); }
-
-        /* Timer Section */
-        #timer-display {
-            font-family: var(--font-family-mono);
-            font-size: 4rem;
-            text-align: center;
-            margin: 20px 0;
-            font-weight: 700;
-        }
-        
-        #progress-bar-container {
-            width: 100%;
-            height: 10px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-        .classic-theme #progress-bar-container { background-color: var(--classic-border); }
-        .batman-theme #progress-bar-container { background-color: var(--batman-border); }
-
-        #progress-bar {
-            height: 100%;
-            width: 0%;
-            border-radius: 5px;
-            transition: width 0.5s ease-out;
-        }
-        .classic-theme #progress-bar { background-color: var(--classic-primary); }
-        .batman-theme #progress-bar { background-color: var(--batman-primary); }
-
-
-        .timer-inputs, .timer-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .timer-inputs input {
-            width: 80px;
-            padding: 10px;
-            font-size: 1rem;
-            text-align: center;
-            border-radius: 8px;
-            border: 1px solid;
-        }
-
-        .classic-theme .timer-inputs input {
-            background-color: var(--classic-bg);
-            border-color: var(--classic-border);
-            color: var(--classic-text);
-        }
-
-        .batman-theme .timer-inputs input {
-            background-color: var(--batman-bg);
-            border-color: var(--batman-border);
-            color: var(--batman-text);
-        }
-        
-        button {
-            padding: 10px 20px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.1s;
-        }
-        
-        button:active { transform: scale(0.98); }
-
-        .btn-primary { color: var(--classic-primary-text); }
-        .classic-theme .btn-primary { background-color: var(--classic-primary); }
-        .batman-theme .btn-primary { 
-            background-color: var(--batman-primary);
-            color: var(--batman-primary-text);
-        }
-
-        .btn-secondary { background-color: transparent; }
-
-        .classic-theme .btn-secondary {
-            border: 1px solid var(--classic-border);
-            color: var(--classic-text);
-        }
-        .batman-theme .btn-secondary {
-            border: 1px solid var(--batman-border);
-            color: var(--batman-text);
-        }
-
-        /* Checklist */
-        .task-list {
-            flex-grow: 1;
-            overflow-y: auto;
-            max-height: 250px;
-            padding-right: 10px;
-        }
-
-        .task-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .task-item input[type="checkbox"] { width: 20px; height: 20px; flex-shrink: 0; }
-
-        .task-item input[type="text"] {
-            padding: 8px;
-            border-radius: 6px;
-            border: 1px solid;
-            flex-grow: 1;
-        }
-        
-        .task-item .task-timer { font-family: var(--font-family-mono); font-size: 0.9rem; min-width: 60px; text-align: right;}
-        .task-item button { padding: 5px 10px; font-size: 0.8rem; }
-
-        .classic-theme .task-item input[type="text"] {
-            background-color: var(--classic-bg);
-            border-color: var(--classic-border);
-            color: var(--classic-text);
-        }
-        .batman-theme .task-item input[type="text"] {
-            background-color: var(--batman-bg);
-            border-color: var(--batman-border);
-            color: var(--batman-text);
-        }
-        
-        /* Heatmap & Stats Section */
-        .heatmap-container {
-            overflow-x: auto;
-            padding: 10px;
-        }
-        .heatmap {
-            display: grid;
-            grid-template-rows: repeat(7, 1fr);
-            grid-auto-flow: column;
-            gap: 4px;
-        }
-
-        .heatmap-day {
-            width: 15px;
-            height: 15px;
-            border-radius: 3px;
-            position: relative;
-            cursor: pointer;
-        }
-        
-        .classic-theme .heatmap-day { background-color: var(--classic-heatmap-empty); }
-        .batman-theme .heatmap-day { background-color: var(--batman-heatmap-empty); }
-
-        .heatmap-day[data-level="1"] { background-color: var(--classic-heatmap-low); }
-        .heatmap-day[data-level="2"] { background-color: var(--classic-heatmap-medium); }
-        .heatmap-day[data-level="3"] { background-color: var(--classic-heatmap-high); }
-        .heatmap-day[data-level="4"] { background-color: var(--classic-heatmap-very-high); }
-        
-        .batman-theme .heatmap-day[data-level="1"] { background-color: var(--batman-heatmap-low); }
-        .batman-theme .heatmap-day[data-level="2"] { background-color: var(--batman-heatmap-medium); }
-        .batman-theme .heatmap-day[data-level="3"] { background-color: var(--batman-heatmap-high); }
-        .batman-theme .heatmap-day[data-level="4"] { background-color: var(--batman-heatmap-very-high); }
-
-        .heatmap-day .tooltip {
-            visibility: hidden;
-            width: 160px;
-            background-color: #555;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px 0;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -80px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .heatmap-day:hover .tooltip { visibility: visible; opacity: 1; }
-        
-        .heatmap-controls {
-            margin-top: 10px;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-        }
-
-        .stats-container {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid;
-            font-size: 0.9rem;
-        }
-        .classic-theme .stats-container { border-color: var(--classic-border); }
-        .batman-theme .stats-container { border-color: var(--batman-border); }
-
-        .stats-container p {
-            margin: 5px 0;
-            display: flex;
-            justify-content: space-between;
-        }
-        .stats-container span { font-weight: bold; }
+        .aspect-w-16 { position: relative; padding-bottom: 56.25%; }
+        .aspect-h-9 { height: 0; }
+        .aspect-w-16 > * { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
     </style>
 </head>
-<body>
+<body class="bg-primary text-primary">
 
-    <div class="theme-switcher">
-        <label class="theme-switch">
-            <input type="checkbox" id="theme-toggle">
-            <span class="slider"></span>
-        </label>
+    <div id="app-container" class="max-w-7xl mx-auto p-4">
+        
+        <header class="flex flex-wrap justify-between items-center mb-6 pb-4 border-b border-theme">
+            <div class="flex items-center gap-4">
+                <h1 id="main-title" class="text-4xl font-bold accent-primary cursor-pointer" contenteditable="true">Productivity Hub</h1>
+                <span id="save-indicator" class="text-sm text-secondary transition-opacity duration-500 opacity-0">✓ Saved</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="./focus.html" target="_blank" id="focus-header-btn" class="btn-theme-primary p-2 rounded-md">Focus</a>
+                <div id="theme-switcher" class="flex items-center space-x-2">
+                    <button data-theme="classic" class="theme-btn p-2 rounded-full bg-blue-500 border-2 border-transparent" title="Classic"></button>
+                    <button data-theme="wonder-woman" class="theme-btn p-2 rounded-full bg-yellow-500 border-2 border-transparent" title="Wonder Woman"></button>
+                    <button data-theme="iron-man" class="theme-btn p-2 rounded-full bg-cyan-400 border-2 border-transparent" title="Iron Man"></button>
+                    <button data-theme="batman" class="theme-btn p-2 rounded-full bg-yellow-400 border-2 border-transparent" title="Batman"></button>
+                </div>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Tools -->
+                <div class="bg-secondary p-4 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-2 text-primary">Stopwatch</h2>
+                    <div id="stopwatch-display" class="text-5xl font-mono text-center accent-primary mb-4 cursor-pointer">00:00:00</div>
+                    <p class="text-center text-secondary text-sm">Single tap: start/stop. Double tap: reset.</p>
+                </div>
+
+                <div class="bg-secondary p-4 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-2 text-primary">Focus Sessions</h2>
+                    <div class="flex flex-col space-y-2">
+                        <button id="focus-25" class="btn-theme-primary p-2 rounded-md">Start 25 Min Focus</button>
+                        <button id="focus-50" class="btn-theme-secondary p-2 rounded-md">Start 50 Min Focus</button>
+                    </div>
+                </div>
+
+                <div class="bg-secondary p-4 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-2 text-primary">Productivity Calendar</h2>
+                    <div class="flex justify-between items-center mb-2">
+                        <button id="prev-month" class="p-2 hover-accent-primary">&lt;</button>
+                        <h3 id="calendar-month-year" class="font-bold"></h3>
+                        <button id="next-month" class="p-2 hover-accent-primary">&gt;</button>
+                    </div>
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
+                </div>
+
+                 <div class="bg-secondary p-4 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold mb-2 text-primary">Achievements</h2>
+                    <div id="achievement-badge" class="w-24 h-24 mx-auto rounded-full flex items-center justify-center text-4xl font-bold cursor-pointer mb-2 transition-transform duration-300 hover:scale-110">
+                        <span id="badge-level">0</span>
+                    </div>
+                    <p id="main-quote" class="text-center text-secondary italic" contenteditable="true">"The secret of getting ahead is getting started."</p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 bg-secondary p-4 rounded-lg shadow-md">
+                <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+                    <h2 class="text-3xl font-bold text-primary">Checklist</h2>
+                    <div class="flex gap-2">
+                        <button id="bulk-add-btn" class="btn-theme-secondary p-2 rounded-md">Bulk Add</button>
+                        <button id="add-subject-btn" class="btn-theme-primary p-2 rounded-md">Add Subject</button>
+                    </div>
+                </div>
+                 <div class="mb-4">
+                    <input type="text" id="search-bar" class="w-full p-2 rounded-md bg-primary text-primary border border-theme" placeholder="Search tasks...">
+                </div>
+                <div id="checklist-container"></div>
+            </div>
+        </main>
     </div>
 
-    <div class="app-container">
-        <!-- Timer Card -->
-        <div class="card">
-            <h2>Focus Timer</h2>
-            <div id="timer-display">00:00:00</div>
-            <div id="progress-bar-container">
-                <div id="progress-bar"></div>
-            </div>
-            <div class="timer-inputs">
-                <input type="number" id="hours-input" placeholder="Hours" min="0">
-                <input type="number" id="minutes-input" placeholder="Minutes" min="0" max="59">
-            </div>
-            <div class="timer-controls">
-                <button id="start-btn" class="btn-primary">Start</button>
-                <button id="pause-btn" class="btn-secondary" style="display:none;">Pause</button>
-                <button id="reset-btn" class="btn-secondary" style="display:none;">Reset</button>
-                <button id="done-btn" class="btn-primary" style="display:none;">Done</button>
-            </div>
-             <div class="timer-controls" style="margin-top: auto; margin-bottom: 0;">
-                <button id="save-data-btn" class="btn-secondary">Save Data</button>
+    <!-- Modals -->
+    <div id="focus-mode-overlay" class="hidden fixed inset-0 flex-col items-center justify-center z-50 transition-colors duration-500">
+        <div id="focus-timer" class="text-8xl md:text-9xl font-bold text-white"></div>
+        <button id="end-focus-session" class="mt-8 text-white border border-white px-6 py-2 rounded-lg hover:bg-white hover:text-black transition-colors">End Session</button>
+    </div>
+
+    <div id="quote-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+        <div class="bg-secondary p-6 rounded-lg max-w-2xl w-full max-h-full overflow-y-auto modal">
+            <h2 class="text-2xl font-bold mb-4 text-primary">Unlocked Quotes</h2>
+            <div id="quote-list"></div>
+            <button id="close-quote-modal" class="mt-4 btn-theme-secondary p-2 rounded-md">Close</button>
+        </div>
+    </div>
+
+    <div id="calendar-note-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+        <div class="bg-secondary p-6 rounded-lg max-w-md w-full modal">
+            <h2 class="text-2xl font-bold mb-4 text-primary" id="calendar-note-title"></h2>
+            <textarea id="calendar-note-input" class="w-full p-2 rounded-md bg-primary text-primary border border-theme" rows="4" placeholder="Add a note..."></textarea>
+            <div class="flex justify-between items-center mt-4">
+                <button id="save-calendar-note" class="btn-theme-primary p-2 rounded-md">Save</button>
+                <button id="delete-calendar-note" class="btn-theme-secondary p-2 rounded-md">Delete</button>
+                <button id="close-calendar-note-modal" class="p-2 rounded-md">Cancel</button>
             </div>
         </div>
+    </div>
+    
+    <div id="notes-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+        <div class="bg-secondary p-6 rounded-lg max-w-2xl w-full max-h-full flex flex-col modal">
+            <h2 class="text-2xl font-bold mb-4 text-primary">Notes & Attachments</h2>
+            <div class="flex-grow overflow-y-auto">
+                <textarea id="item-note-text" class="w-full p-2 rounded-md bg-primary text-primary border border-theme mb-4" rows="5" placeholder="Type your notes here..."></textarea>
+                <div id="attachments-container" class="space-y-2"></div>
+            </div>
+            <div class="flex-shrink-0 flex flex-wrap gap-2 mt-4">
+                <input type="text" id="attachment-input" class="flex-grow p-2 rounded-md bg-primary text-primary border border-theme" placeholder="Paste Web or YouTube URL">
+                <button id="add-link-btn" class="btn-theme-primary p-2 rounded-md">Add Link</button>
+            </div>
+             <button id="close-notes-modal" class="mt-4 p-2 rounded-md">Close</button>
+        </div>
+    </div>
+    
+    <div id="youtube-player-modal" class="hidden fixed inset-0 bg-black bg-opacity-90 items-center justify-center z-50 p-4">
+        <div class="relative w-full max-w-4xl">
+            <button id="close-youtube-modal" class="absolute -top-8 right-0 text-white text-2xl">&times;</button>
+            <div id="youtube-player-container" class="aspect-w-16 aspect-h-9"></div>
+        </div>
+    </div>
 
-        <!-- General Checklist Card -->
-        <div class="card">
-            <h2><span id="checklist-title" contenteditable="true">General Checklist</span></h2>
-            <div id="general-tasks-list" class="task-list"></div>
-            <div class="timer-controls" style="justify-content: flex-start; margin-top: auto;">
-                <button id="add-general-task-btn" class="btn-secondary">Add Task</button>
-                <button id="clear-completed-btn" class="btn-secondary">Clear Completed</button>
+    <div id="bulk-add-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+        <div class="bg-secondary p-6 rounded-lg max-w-2xl w-full modal">
+            <h2 class="text-2xl font-bold mb-4 text-primary">Bulk Add From Text</h2>
+            <p class="text-sm text-secondary mb-2">Use format: `Subject: Name`, `Section: Name`, etc. Indent with spaces for hierarchy.</p>
+            <textarea id="bulk-add-input" class="w-full p-2 rounded-md bg-primary text-primary border border-theme" rows="10" placeholder="Subject: My Project\n  Section: Research\n    Topic: Competitors\n      Subtopic: Analyze competitor A"></textarea>
+            <div class="flex justify-between mt-4">
+                <button id="process-bulk-add" class="btn-theme-primary p-2 rounded-md">Add to Checklist</button>
+                <button id="close-bulk-add-modal" class="p-2 rounded-md">Cancel</button>
             </div>
         </div>
+    </div>
 
-        <!-- Heatmaps Card -->
-        <div class="card full-width">
-            <h2>Checklist History <span id="checklist-heatmap-date" class="date-display"></span></h2>
-            <div class="heatmap-container">
-                <div class="heatmap" id="checklist-heatmap"></div>
-            </div>
-            <div class="stats-container" id="checklist-stats"></div>
+    <div id="level-up-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 items-center justify-center z-50 p-4">
+        <div class="bg-secondary p-8 rounded-lg text-center modal">
+            <h2 class="text-4xl font-bold accent-primary mb-4">LEVEL UP!</h2>
+            <p class="text-xl text-primary mb-2">You've reached Level <span id="new-level-display"></span>!</p>
+            <p class="text-lg text-secondary">A new quote has been unlocked.</p>
+            <button id="close-level-up-modal" class="mt-6 btn-theme-primary p-2 rounded-md">Awesome!</button>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- DOM Elements ---
-            const themeToggle = document.getElementById('theme-toggle');
-            const body = document.body;
-            // Main Timer
-            const timerDisplay = document.getElementById('timer-display');
-            const progressBar = document.getElementById('progress-bar');
-            const hoursInput = document.getElementById('hours-input');
-            const minutesInput = document.getElementById('minutes-input');
-            const startBtn = document.getElementById('start-btn');
-            const pauseBtn = document.getElementById('pause-btn');
-            const resetBtn = document.getElementById('reset-btn');
-            const doneBtn = document.getElementById('done-btn');
-            const saveDataBtn = document.getElementById('save-data-btn');
-            // General Tasks
-            const checklistTitle = document.getElementById('checklist-title');
-            const generalTasksList = document.getElementById('general-tasks-list');
-            const addGeneralTaskBtn = document.getElementById('add-general-task-btn');
-            const clearCompletedBtn = document.getElementById('clear-completed-btn');
-            // Heatmaps & Stats
-            const checklistHeatmapContainer = document.getElementById('checklist-heatmap');
-            const checklistHeatmapDate = document.getElementById('checklist-heatmap-date');
-            const checklistStatsContainer = document.getElementById('checklist-stats');
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- STATE MANAGEMENT ---
+        let state;
+        let currentEditingIndices = null; // For notes modal
+        let currentCalendarDate = null; // For calendar modal
+        let stopwatchInterval = null; // For the stopwatch timer
 
-            // --- State Management ---
-            let mainTimer = {
-                interval: null,
-                totalSeconds: 0,
-                secondsRemaining: 0,
-                timeSpent: 0,
-                isPaused: false,
-                isActive: false,
-                endTime: 0
-            };
-            let generalTasks = [];
-            let focusHistory = {}; // Kept for timer logic, but not displayed
-            let checklistHistory = {};
+        const defaultState = {
+            mainTitle: 'Productivity Hub',
+            currentTheme: 'classic',
+            checklists: { classic: [], 'wonder-woman': [], 'iron-man': [], batman: [] },
+            stopwatch: { startTime: 0, elapsedTime: 0, isRunning: false },
+            calendar: { date: new Date().toISOString(), bookmarks: {} },
+            achievements: {
+                classic: { level: 0, mainQuote: "The future depends on what you do today." },
+                'wonder-woman': { level: 0, mainQuote: "If no one else will defend the world, then I must." },
+                'iron-man': { level: 0, mainQuote: "I am Iron Man." },
+                batman: { level: 0, mainQuote: "It's not who I am underneath, but what I do that defines me." }
+            },
+        };
 
-            // --- Local Storage Keys ---
-            const KEYS = {
-                THEME: 'focusAppTheme',
-                FOCUS_HISTORY: 'focusAppHistory',
-                CHECKLIST_HISTORY: 'focusAppChecklistHistory',
-                MAIN_TIMER_STATE: 'focusAppMainTimerState',
-                GENERAL_TASKS: 'focusAppGeneralTasks',
-                CHECKLIST_TITLE: 'focusAppChecklistTitle'
-            };
+        const quotes = {
+            classic: ["The future depends on what you do today.", "Well done is better than well said.", "The secret of getting ahead is getting started.", "A year from now you may wish you had started today.", "The best way to predict the future is to create it."],
+            'wonder-woman': ["If no one else will defend the world, then I must.", "It's about what you believe. And I believe in love.", "What one does when faced with the truth is more difficult than you'd think.", "I will fight for those who cannot fight for themselves.", "Peace is a virtue. A state of mind, a disposition for benevolence, confidence and justice."],
+            'iron-man': ["I am Iron Man.", "Sometimes you gotta run before you can walk.", "The truth is... I am Iron Man.", "I build neat stuff, got a great girl, occasionally save the world. So why can't I sleep?", "Heroes are made by the paths they choose, not the powers they are graced with."],
+            batman: ["It's not who I am underneath, but what I do that defines me.", "I'm Batman.", "All men have limits. They learn what they are and learn not to exceed them. I ignore mine.", "A hero can be anyone.", "Why do we fall? So that we can learn to pick ourselves up."]
+        };
 
-            // --- General Functions ---
-            const saveState = (showNotification = false) => {
-                // Only save timer state if it's actually running
-                if (mainTimer.isActive) {
-                    localStorage.setItem(KEYS.MAIN_TIMER_STATE, JSON.stringify(mainTimer));
-                } else {
-                    localStorage.removeItem(KEYS.MAIN_TIMER_STATE);
+        // --- LOCAL STORAGE & SAVE INDICATOR ---
+        function saveState() {
+            try {
+                localStorage.setItem('themedProductivityAppState', JSON.stringify(state));
+                // Flash the save indicator to give user feedback
+                const indicator = document.getElementById('save-indicator');
+                indicator.classList.remove('opacity-0');
+                setTimeout(() => {
+                    indicator.classList.add('opacity-0');
+                }, 1500);
+            } catch (e) {
+                console.error("Error saving state to localStorage:", e);
+            }
+        }
+
+        function loadState() {
+            const savedStateJSON = localStorage.getItem('themedProductivityAppState');
+            if (savedStateJSON) {
+                try {
+                    const savedState = JSON.parse(savedStateJSON);
+                    state = { ...defaultState, ...savedState };
+                    state.achievements = { ...defaultState.achievements, ...savedState.achievements };
+                    state.checklists = { ...defaultState.checklists, ...savedState.checklists };
+                    state.calendar = { ...defaultState.calendar, ...savedState.calendar };
+                    state.stopwatch = { ...defaultState.stopwatch, ...savedState.stopwatch };
+                } catch (e) {
+                    console.error("Error parsing saved state, resetting to default:", e);
+                    state = { ...defaultState };
                 }
-                localStorage.setItem(KEYS.GENERAL_TASKS, JSON.stringify(generalTasks));
-                localStorage.setItem(KEYS.CHECKLIST_TITLE, checklistTitle.textContent);
-                localStorage.setItem(KEYS.CHECKLIST_HISTORY, JSON.stringify(checklistHistory));
-                localStorage.setItem(KEYS.FOCUS_HISTORY, JSON.stringify(focusHistory));
-
-
-                if (showNotification) {
-                    const originalText = saveDataBtn.textContent;
-                    saveDataBtn.textContent = 'Saved!';
-                    setTimeout(() => {
-                        saveDataBtn.textContent = originalText;
-                    }, 1500);
-                }
-            };
-
-            const loadState = () => {
-                const savedTheme = localStorage.getItem(KEYS.THEME);
-                if (savedTheme === 'batman') {
-                    body.classList.add('batman-theme');
-                    body.classList.remove('classic-theme');
-                    themeToggle.checked = true;
-                } else {
-                    body.classList.add('classic-theme');
-                    body.classList.remove('batman-theme');
-                    themeToggle.checked = false;
-                }
-
-                const savedChecklistTitle = localStorage.getItem(KEYS.CHECKLIST_TITLE);
-                if (savedChecklistTitle) {
-                    checklistTitle.textContent = savedChecklistTitle;
-                }
-
-                focusHistory = JSON.parse(localStorage.getItem(KEYS.FOCUS_HISTORY)) || {};
-                checklistHistory = JSON.parse(localStorage.getItem(KEYS.CHECKLIST_HISTORY)) || {};
-                
-                const savedTimer = JSON.parse(localStorage.getItem(KEYS.MAIN_TIMER_STATE));
-                if (savedTimer && savedTimer.isActive) {
-                    mainTimer = savedTimer;
-                    handleTimerOnLoad();
-                }
-
-                generalTasks = JSON.parse(localStorage.getItem(KEYS.GENERAL_TASKS)) || [];
-                // Restart any active general task timers
-                generalTasks.forEach(task => {
-                    if (task.isActive) {
-                        task.isActive = false; // Prevent duplicate intervals
-                        toggleGeneralTaskTimer(task.id);
-                    }
-                });
-            };
-
-            const init = () => {
-                loadState();
-                renderAll();
-            };
-            
-            const renderAll = () => {
-                updateTimerDisplay();
-                renderGeneralTasks();
-                renderChecklistHeatmap();
-                updateUI();
-                calculateAndDisplayStats();
-            };
-
-            // --- Theme Management ---
-            themeToggle.addEventListener('change', () => {
-                const isBatman = themeToggle.checked;
-                body.classList.toggle('batman-theme', isBatman);
-                body.classList.toggle('classic-theme', !isBatman);
-                localStorage.setItem(KEYS.THEME, isBatman ? 'batman' : 'classic');
-                renderAll(); // Re-render heatmaps with new theme colors
+            } else {
+                state = { ...defaultState };
+            }
+        }
+        
+        // --- THEME ---
+        function applyTheme(theme) {
+            state.currentTheme = theme;
+            document.body.className = `theme-${theme} bg-primary text-primary`;
+            document.querySelectorAll('#theme-switcher .theme-btn').forEach(btn => {
+                btn.style.borderColor = btn.dataset.theme === theme ? 'var(--accent-primary)' : 'transparent';
             });
+            document.getElementById('main-title').textContent = state.mainTitle;
+            updateBadge();
+            renderCalendar();
+            renderChecklist();
+        }
+        
+        // --- CHECKLIST LOGIC ---
+        function renderChecklist(searchTerm = '') {
+            const currentChecklist = state.checklists[state.currentTheme] || [];
+            const checklistContainer = document.getElementById('checklist-container');
+            checklistContainer.innerHTML = '';
+            if (currentChecklist.length === 0 && !searchTerm) {
+                checklistContainer.innerHTML = `<p class="text-secondary">No subjects yet. Add one to get started!</p>`;
+                return;
+            }
+            const filteredChecklist = searchTerm ? filterChecklist(currentChecklist, searchTerm.toLowerCase()) : currentChecklist;
+            filteredChecklist.forEach((subject, subjectIndex) => {
+                const subjectEl = createChecklistItem(subject, [subjectIndex], 'subject', searchTerm);
+                checklistContainer.appendChild(subjectEl);
+            });
+            // No saveState() here, it's called by the functions that modify the state
+        }
 
-            // --- Main Timer Logic ---
-            const handleTimerOnLoad = () => {
-                const newSecondsRemaining = Math.max(0, Math.floor((mainTimer.endTime - Date.now()) / 1000));
-                const secondsElapsed = mainTimer.secondsRemaining - newSecondsRemaining;
-                mainTimer.timeSpent += secondsElapsed;
-                mainTimer.secondsRemaining = newSecondsRemaining;
+        function createChecklistItem(item, indices, type, searchTerm) {
+            const itemEl = document.createElement('div');
+            itemEl.className = `checklist-item ${item.collapsed && !searchTerm ? 'collapsed' : ''}`;
+            itemEl.dataset.type = type;
+            itemEl.dataset.indices = indices.join(',');
 
-                if (mainTimer.isPaused) {
-                    updateUI();
-                    updateTimerDisplay();
-                    return;
+            let topicCheckboxState = '';
+            if (type === 'topic') {
+                const subtopics = item.children || [];
+                if (subtopics.length > 0) {
+                    const completedCount = subtopics.filter(st => st.completed).length;
+                    if (completedCount === 0) topicCheckboxState = '';
+                    else if (completedCount === subtopics.length) topicCheckboxState = 'checked';
+                    else topicCheckboxState = 'indeterminate';
                 }
+            }
 
-                if (mainTimer.secondsRemaining <= 0) {
-                    handleTimerCompletion(true);
-                } else {
-                    startTimer(true);
-                }
-            };
+            const childrenContainer = type !== 'subtopic' ? `<div class="children-container"></div>` : '';
+            const checkboxHTML = {
+                topic: `<input type="checkbox" class="topic-checkbox mr-2" ${topicCheckboxState === 'checked' ? 'checked' : ''}>`,
+                subtopic: `<input type="checkbox" class="subtopic-checkbox mr-2" ${item.completed ? 'checked' : ''}>`
+            }[type] || '';
             
-            const updateTimerDisplay = () => {
-                const hours = Math.floor(mainTimer.secondsRemaining / 3600);
-                const minutes = Math.floor((mainTimer.secondsRemaining % 3600) / 60);
-                const seconds = mainTimer.secondsRemaining % 60;
-                timerDisplay.textContent = 
-                    `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                
-                updateProgressBar();
-            };
+            itemEl.innerHTML = `
+                <div class="flex items-center justify-between p-2 rounded-md hover-bg-primary">
+                    <div class="flex items-center flex-grow min-w-0">
+                        ${type !== 'subtopic' ? `<span class="collapsible-icon mr-2 cursor-pointer text-secondary">▼</span>` : ''}
+                        ${checkboxHTML}
+                        <span class="item-title text-primary cursor-pointer truncate">${item.title}</span>
+                        <input type="text" class="item-edit-input hidden w-full bg-primary text-primary border-b border-theme" value="${item.title}">
+                    </div>
+                    <div class="flex items-center space-x-2 flex-shrink-0 ml-2">
+                        <button class="notes-btn text-secondary hover-accent-primary text-lg">📝</button>
+                        ${type !== 'subtopic' ? `<button class="add-child-btn btn-theme-primary text-xs px-2 py-1 rounded">+</button>` : ''}
+                        <button class="delete-item-btn text-red-500 hover:text-red-400 text-lg">🗑️</button>
+                    </div>
+                </div>
+                ${childrenContainer}
+            `;
 
-            const updateProgressBar = () => {
-                if (mainTimer.totalSeconds > 0) {
-                    const percentage = (mainTimer.secondsRemaining / mainTimer.totalSeconds) * 100;
-                    progressBar.style.width = `${percentage}%`;
-                } else {
-                    progressBar.style.width = '0%';
-                }
-            };
+            if (topicCheckboxState === 'indeterminate') {
+                itemEl.querySelector('.topic-checkbox').indeterminate = true;
+            }
 
-            const startTimer = (isResuming = false) => {
-                if (!isResuming) {
-                    const hours = parseInt(hoursInput.value) || 0;
-                    const minutes = parseInt(minutesInput.value) || 0;
-                    mainTimer.totalSeconds = (hours * 3600) + (minutes * 60);
-                    if (mainTimer.totalSeconds <= 0) return;
-                    mainTimer.secondsRemaining = mainTimer.totalSeconds;
-                    mainTimer.timeSpent = 0;
-                }
-                
-                mainTimer.isActive = true;
-                mainTimer.isPaused = false;
-                mainTimer.endTime = Date.now() + mainTimer.secondsRemaining * 1000;
-
-                clearInterval(mainTimer.interval);
-                mainTimer.interval = setInterval(() => {
-                    if (mainTimer.secondsRemaining > 0) {
-                        mainTimer.secondsRemaining--;
-                        mainTimer.timeSpent++;
-                        updateTimerDisplay();
-                    } else {
-                        handleTimerCompletion();
-                    }
-                }, 1000);
-                updateUI();
-            };
-
-            const pauseTimer = () => {
-                mainTimer.isPaused = !mainTimer.isPaused;
-                if (mainTimer.isPaused) {
-                    clearInterval(mainTimer.interval);
-                } else {
-                    mainTimer.endTime = Date.now() + mainTimer.secondsRemaining * 1000;
-                    startTimer(true);
-                }
-                updateUI();
-            };
-
-            const resetTimer = () => {
-                clearInterval(mainTimer.interval);
-                mainTimer = { interval: null, totalSeconds: 0, secondsRemaining: 0, timeSpent: 0, isPaused: false, isActive: false, endTime: 0 };
-                localStorage.removeItem(KEYS.MAIN_TIMER_STATE);
-                renderAll();
-            };
-
-            const handleTimerCompletion = (silent = false) => {
-                 clearInterval(mainTimer.interval);
-                 if (!silent) {
-                    timerDisplay.textContent = "Time's Up!";
-                    setTimeout(() => {
-                        saveFocusHistory(mainTimer.timeSpent);
-                        resetTimer();
-                    }, 1000);
-                 } else {
-                    saveFocusHistory(mainTimer.totalSeconds);
-                    resetTimer();
-                 }
-            };
-
-            const completeSessionEarly = () => {
-                clearInterval(mainTimer.interval);
-                saveFocusHistory(mainTimer.timeSpent);
-                resetTimer();
-            };
-
-            const updateUI = () => {
-                const isActive = mainTimer.isActive;
-                startBtn.style.display = isActive ? 'none' : 'inline-block';
-                hoursInput.disabled = isActive;
-                minutesInput.disabled = isActive;
-                pauseBtn.style.display = isActive ? 'inline-block' : 'none';
-                resetBtn.style.display = isActive ? 'inline-block' : 'none';
-                doneBtn.style.display = isActive ? 'inline-block' : 'none';
-                pauseBtn.textContent = mainTimer.isPaused ? 'Resume' : 'Pause';
-            };
-
-            // --- Task Logic ---
-            const createTimeDisplay = (seconds) => {
-                const mins = Math.floor(seconds / 60);
-                const secs = seconds % 60;
-                return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-            };
-
-            const renderGeneralTasks = () => {
-                generalTasksList.innerHTML = '';
-                generalTasks.forEach(task => {
-                    const taskEl = document.createElement('div');
-                    taskEl.className = 'task-item';
-                    taskEl.innerHTML = `
-                        <input type="checkbox" data-id="${task.id}" ${task.completed ? 'checked' : ''}>
-                        <input type="text" placeholder="Task description" value="${task.text}" data-id="${task.id}">
-                        <span class="task-timer">${createTimeDisplay(task.timeSpent)}</span>
-                        <button class="btn-secondary" data-id="${task.id}" data-action="toggle">${task.isActive ? 'Stop' : 'Start'}</button>
-                        <button class="btn-secondary" data-id="${task.id}" data-action="delete">-</button>
-                    `;
-                    generalTasksList.appendChild(taskEl);
+            if (type !== 'subtopic' && (!item.collapsed || searchTerm) && item.children) {
+                const childrenEl = itemEl.querySelector('.children-container');
+                const childType = { subject: 'section', section: 'topic', topic: 'subtopic' }[type];
+                item.children.forEach((child, childIndex) => {
+                    childrenEl.appendChild(createChecklistItem(child, [...indices, childIndex], childType, searchTerm));
                 });
-            };
+            }
+            return itemEl;
+        }
+        
+        document.getElementById('checklist-container').addEventListener('click', (e) => {
+            const target = e.target;
+            const itemEl = target.closest('.checklist-item');
+            if (!itemEl) return;
 
-            const addGeneralTask = () => {
-                generalTasks.push({ id: Date.now(), text: '', completed: false, timeSpent: 0, isActive: false, intervalId: null });
-                renderGeneralTasks();
-            };
+            const indices = itemEl.dataset.indices.split(',').map(Number);
+            let item = getItemByIndices(indices);
+            if (!item) return;
 
-            const updateGeneralTask = (id, field, value) => {
-                const task = generalTasks.find(t => t.id === id);
-                if (task) {
-                    const wasCompleted = task.completed;
-                    task[field] = value;
-                    // Only change history if the completion status actually changes
-                    if (field === 'completed' && wasCompleted !== value) {
-                        if (value) { // If it's now completed
-                            if (task.isActive) toggleGeneralTaskTimer(id);
-                            saveChecklistHistory(true);
-                        } else { // If it's now un-completed
-                             saveChecklistHistory(false);
+            if (target.classList.contains('collapsible-icon')) {
+                item.collapsed = !item.collapsed;
+                renderChecklist();
+                saveState();
+            } else if (target.classList.contains('delete-item-btn')) {
+                if (confirm('Are you sure you want to delete this item and all its contents?')) {
+                    deleteItemByIndices(indices);
+                    renderChecklist();
+                    saveState();
+                }
+            } else if (target.classList.contains('add-child-btn')) {
+                if (!item.children) item.children = [];
+                const childType = { subject: 'section', section: 'topic', topic: 'subtopic' }[itemEl.dataset.type];
+                item.children.push({ title: `New ${childType}`, completed: false, children: [], notes: { text: '', attachments: [] } });
+                item.collapsed = false;
+                renderChecklist();
+                saveState();
+                const newItemEl = document.querySelector(`[data-indices='${[...indices, item.children.length - 1].join(',')}']`);
+                if(newItemEl) newItemEl.querySelector('.item-title').click();
+            } else if (target.classList.contains('item-title')) {
+                target.classList.add('hidden');
+                const input = target.nextElementSibling;
+                input.classList.remove('hidden');
+                input.focus();
+                input.select();
+            } else if (target.classList.contains('subtopic-checkbox')) {
+                item.completed = target.checked;
+                // *** ADDED COMPLETION DATE LOGIC ***
+                if (item.completed) {
+                    item.completionDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                } else {
+                    delete item.completionDate;
+                }
+                updateAchievements();
+                renderChecklist();
+                saveState();
+            } else if (target.classList.contains('topic-checkbox')) {
+                const isChecked = target.checked;
+                const todayStr = new Date().toISOString().split('T')[0];
+                if (item.children) {
+                    item.children.forEach(subtopic => {
+                        subtopic.completed = isChecked;
+                        // *** ADDED COMPLETION DATE LOGIC ***
+                        if (isChecked) {
+                            subtopic.completionDate = todayStr;
+                        } else {
+                            delete subtopic.completionDate;
                         }
-                    }
+                    });
                 }
-                renderGeneralTasks();
-            };
-            
-            const deleteGeneralTask = (id) => {
-                // This function now ONLY removes the task from the visible list.
-                // It does NOT alter the history.
-                generalTasks = generalTasks.filter(t => t.id !== id);
-                renderGeneralTasks();
-            };
-            
-            const clearCompletedTasks = () => {
-                // This function removes completed tasks from the list without altering history.
-                generalTasks = generalTasks.filter(task => !task.completed);
-                renderGeneralTasks();
-            };
-
-            const toggleGeneralTaskTimer = (id) => {
-                const task = generalTasks.find(t => t.id === id);
-                if (!task || task.completed) return;
-
-                task.isActive = !task.isActive;
-                if (task.isActive) {
-                    task.intervalId = setInterval(() => {
-                        task.timeSpent++;
-                        renderGeneralTasks();
-                    }, 1000);
-                } else {
-                    clearInterval(task.intervalId);
-                    task.intervalId = null;
-                }
-                renderGeneralTasks();
-            };
-
-            generalTasksList.addEventListener('change', e => {
-                const id = parseInt(e.target.dataset.id);
-                if (e.target.type === 'checkbox') {
-                    updateGeneralTask(id, 'completed', e.target.checked);
-                }
-            });
-
-            generalTasksList.addEventListener('input', e => {
-                const id = parseInt(e.target.dataset.id);
-                 if (e.target.type === 'text') {
-                    const task = generalTasks.find(t => t.id === id);
-                    if (task) task.text = e.target.value;
-                }
-            });
-
-            generalTasksList.addEventListener('click', e => {
-                if (e.target.tagName !== 'BUTTON') return;
-                const id = parseInt(e.target.dataset.id);
-                const action = e.target.dataset.action;
-                if (action === 'toggle') toggleGeneralTaskTimer(id);
-                if (action === 'delete') deleteGeneralTask(id);
-            });
-
-            // --- History & Stats Logic ---
-            const saveFocusHistory = (seconds) => {
-                const today = new Date().toISOString().split('T')[0];
-                const minutes = Math.floor(seconds / 60);
-                if (minutes > 0) {
-                    focusHistory[today] = (focusHistory[today] || 0) + minutes;
-                    localStorage.setItem(KEYS.FOCUS_HISTORY, JSON.stringify(focusHistory));
-                }
-            };
-
-            const saveChecklistHistory = (isIncrement) => {
-                 const today = new Date().toISOString().split('T')[0];
-                 let currentCount = checklistHistory[today] || 0;
-                 currentCount = isIncrement ? currentCount + 1 : Math.max(0, currentCount - 1);
-                 if (currentCount > 0) {
-                    checklistHistory[today] = currentCount;
-                 } else {
-                    delete checklistHistory[today];
-                 }
-                 localStorage.setItem(KEYS.CHECKLIST_HISTORY, JSON.stringify(checklistHistory));
-                 renderAll();
-            };
-
-            const calculateAndDisplayStats = () => {
-                // Checklist Stats
-                let weeklyTasks = 0;
-                let totalTasks = 0;
-                for (const dateStr in checklistHistory) {
-                    const date = new Date(dateStr);
-                    const today = new Date();
-                    const diffTime = today - date;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                     if (diffDays <= 7) {
-                        weeklyTasks += checklistHistory[dateStr];
-                    }
-                    totalTasks += checklistHistory[dateStr];
-                }
-                checklistStatsContainer.innerHTML = `
-                    <p>Last 7 Days: <span>${weeklyTasks} tasks</span></p>
-                    <p>Overall: <span>${totalTasks} tasks</span></p>
-                `;
-            };
-
-            const renderChecklistHeatmap = () => {
-                const container = checklistHeatmapContainer;
-                const data = checklistHistory;
-                const unit = 'tasks';
-                const dateEl = checklistHeatmapDate;
-
-                container.innerHTML = '';
-                const now = new Date();
-                dateEl.textContent = now.toLocaleString('default', { dateStyle: 'long' });
-
-                const endDate = new Date();
-                const startDate = new Date();
-                startDate.setMonth(endDate.getMonth() - 5);
-                
-                let date = new Date(startDate);
-                while (date.getDay() !== 0) { date.setDate(date.getDate() - 1); }
-
-                while (date <= endDate) {
-                    const dateString = date.toISOString().split('T')[0];
-                    const dayEl = document.createElement('div');
-                    dayEl.classList.add('heatmap-day');
-                    
-                    const value = data[dateString] || 0;
-                    let level = 0;
-                    if (value > 0) {
-                        const thresholds = [2, 4, 6];
-                        if (value <= thresholds[0]) level = 1;
-                        else if (value <= thresholds[1]) level = 2;
-                        else if (value <= thresholds[2]) level = 3;
-                        else level = 4;
-                    }
-                    
-                    if (level > 0) dayEl.dataset.level = level;
-
-                    dayEl.innerHTML = `<span class="tooltip">${value} ${unit} on ${date.toDateString()}</span>`;
-                    container.appendChild(dayEl);
-                    date.setDate(date.getDate() + 1);
-                }
-            };
-
-            // --- Event Listeners ---
-            startBtn.addEventListener('click', () => startTimer(false));
-            pauseBtn.addEventListener('click', pauseTimer);
-            resetBtn.addEventListener('click', resetTimer);
-            doneBtn.addEventListener('click', completeSessionEarly);
-            addGeneralTaskBtn.addEventListener('click', addGeneralTask);
-            clearCompletedBtn.addEventListener('click', clearCompletedTasks);
-            saveDataBtn.addEventListener('click', () => saveState(true));
-            checklistTitle.addEventListener('blur', () => {
-                localStorage.setItem(KEYS.CHECKLIST_TITLE, checklistTitle.textContent);
-            });
-            window.addEventListener('beforeunload', () => saveState(false));
-
-            // --- Initial Call ---
-            init();
+                updateAchievements();
+                renderChecklist();
+                saveState();
+            } else if (target.classList.contains('notes-btn')) {
+                openNotesModal(indices);
+            }
         });
+        
+        document.getElementById('checklist-container').addEventListener('focusout', (e) => {
+            if (e.target.classList.contains('item-edit-input')) {
+                const input = e.target;
+                const itemEl = input.closest('.checklist-item');
+                const indices = itemEl.dataset.indices.split(',').map(Number);
+                let item = getItemByIndices(indices);
+                item.title = input.value.trim() || item.title;
+                renderChecklist();
+                saveState();
+            }
+        });
+
+        document.getElementById('checklist-container').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.target.classList.contains('item-edit-input')) e.target.blur();
+        });
+
+        // --- STOPWATCH ---
+        const stopwatchDisplay = document.getElementById('stopwatch-display');
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+            const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+            const seconds = String(totalSeconds % 60).padStart(2, '0');
+            return `${hours}:${minutes}:${seconds}`;
+        }
+
+        function updateStopwatchDisplay() {
+            if (state.stopwatch.isRunning) {
+                const now = Date.now();
+                const totalElapsedTime = state.stopwatch.elapsedTime + (now - state.stopwatch.startTime);
+                stopwatchDisplay.textContent = formatTime(totalElapsedTime);
+            } else {
+                 stopwatchDisplay.textContent = formatTime(state.stopwatch.elapsedTime);
+            }
+        }
+
+        stopwatchDisplay.addEventListener('click', () => {
+            const { isRunning } = state.stopwatch;
+            if (isRunning) {
+                // Stop
+                state.stopwatch.elapsedTime += Date.now() - state.stopwatch.startTime;
+                state.stopwatch.isRunning = false;
+                clearInterval(stopwatchInterval);
+            } else {
+                // Start
+                state.stopwatch.startTime = Date.now();
+                state.stopwatch.isRunning = true;
+                stopwatchInterval = setInterval(updateStopwatchDisplay, 1000);
+            }
+            saveState();
+        });
+
+        stopwatchDisplay.addEventListener('dblclick', () => {
+            state.stopwatch = { startTime: 0, elapsedTime: 0, isRunning: false };
+            clearInterval(stopwatchInterval);
+            stopwatchDisplay.textContent = formatTime(0);
+            saveState();
+        });
+
+        // --- FOCUS SESSIONS ---
+        let focusInterval;
+        function startFocusSession(minutes) {
+            const overlay = document.getElementById('focus-mode-overlay');
+            const timerDisplay = document.getElementById('focus-timer');
+            const themeBgColors = { classic: 'bg-blue-500', 'wonder-woman': 'bg-yellow-600', 'iron-man': 'bg-cyan-500', batman: 'bg-gray-900' };
+            overlay.className = `fixed inset-0 flex flex-col items-center justify-center z-50 ${themeBgColors[state.currentTheme]}`;
+            
+            let totalSeconds = minutes * 60;
+            const updateTimer = () => {
+                const mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+                const secs = String(totalSeconds % 60).padStart(2, '0');
+                timerDisplay.textContent = `${mins}:${secs}`;
+                if (totalSeconds-- <= 0) endFocusSession(true);
+            };
+            updateTimer();
+            focusInterval = setInterval(updateTimer, 1000);
+            document.getElementById('end-focus-session').onclick = () => endFocusSession(false);
+        }
+
+        function endFocusSession(isCompleted) {
+            clearInterval(focusInterval);
+            document.getElementById('focus-mode-overlay').classList.add('hidden');
+            if (isCompleted) new Audio('https://www.soundjay.com/buttons/sounds/button-1.mp3').play();
+        }
+        
+        // --- CALENDAR WITH NOTES & HEATMAP ---
+        function renderCalendar() {
+            const calendarGrid = document.getElementById('calendar-grid');
+            const monthYearEl = document.getElementById('calendar-month-year');
+            calendarGrid.innerHTML = '';
+            const date = new Date(state.calendar.date);
+            monthYearEl.textContent = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+            ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach(d => {
+                calendarGrid.innerHTML += `<div class="font-bold text-secondary">${d}</div>`;
+            });
+            const month = date.getMonth(), year = date.getFullYear();
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for (let i = 0; i < firstDay; i++) calendarGrid.appendChild(document.createElement('div'));
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayEl = document.createElement('div');
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                dayEl.textContent = i;
+                dayEl.dataset.date = dateStr;
+                dayEl.className = 'p-1 cursor-pointer rounded-full transition-all duration-200';
+                const today = new Date();
+                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
+                    dayEl.classList.add('bg-accent-primary', 'text-white');
+                }
+                if (state.calendar.bookmarks[dateStr]) {
+                    dayEl.style.border = '2px solid var(--accent-primary)';
+                    if(state.calendar.bookmarks[dateStr].note) dayEl.title = state.calendar.bookmarks[dateStr].note;
+                }
+                calendarGrid.appendChild(dayEl);
+            }
+        }
+        
+        document.getElementById('calendar-grid').addEventListener('click', e => {
+            if (e.target.dataset.date) openCalendarNoteModal(e.target.dataset.date);
+        });
+
+        // --- NOTES MODAL ---
+        function openNotesModal(indices) {
+            currentEditingIndices = indices;
+            const item = getItemByIndices(indices);
+            if (!item) return;
+            if (!item.notes) item.notes = { text: '', attachments: [] };
+            document.getElementById('item-note-text').value = item.notes.text || '';
+            renderAttachments(item.notes.attachments);
+            openModal('notes-modal');
+        }
+
+        function saveNotes() {
+            if (!currentEditingIndices) return;
+            const item = getItemByIndices(currentEditingIndices);
+            if (!item) return;
+            item.notes.text = document.getElementById('item-note-text').value;
+            saveState();
+        }
+
+        function renderAttachments(attachments) {
+            const container = document.getElementById('attachments-container');
+            container.innerHTML = '';
+            if (!attachments || attachments.length === 0) {
+                container.innerHTML = `<p class="text-sm text-secondary">No attachments yet.</p>`;
+                return;
+            }
+            attachments.forEach((att, index) => {
+                const isYoutube = att.url.includes('youtube.com') || att.url.includes('youtu.be');
+                container.innerHTML += `
+                    <div class="flex items-center justify-between bg-primary p-2 rounded">
+                        <a href="${att.url}" target="_blank" class="truncate hover-accent-primary">${att.url}</a>
+                        <div>
+                            ${isYoutube ? `<button class="play-youtube-btn" data-url="${att.url}">▶️</button>` : ''}
+                            <button class="delete-attachment-btn" data-index="${index}">🗑️</button>
+                        </div>
+                    </div>`;
+            });
+        }
+        
+        // --- GAMIFICATION ---
+        function updateAchievements() {
+            const completedCount = countCompletedTasks();
+            const themeAchievements = state.achievements[state.currentTheme];
+            const newLevel = Math.floor(completedCount / 10);
+            if (newLevel > themeAchievements.level) {
+                themeAchievements.level = newLevel;
+                showLevelUpModal(newLevel);
+            }
+            updateBadge();
+        }
+
+        function countCompletedTasks() {
+            let count = 0;
+            function recurse(items) {
+                items.forEach(item => {
+                    if (item.children && item.children.length > 0) recurse(item.children);
+                    else if (item.completed) count++;
+                });
+            }
+            recurse(state.checklists[state.currentTheme] || []);
+            return count;
+        }
+        
+        function updateBadge() {
+            const themeAchievements = state.achievements[state.currentTheme];
+            document.getElementById('badge-level').textContent = themeAchievements.level;
+            document.getElementById('main-quote').textContent = `"${themeAchievements.mainQuote}"`;
+            const badge = document.getElementById('achievement-badge');
+            badge.className = 'w-24 h-24 mx-auto rounded-full flex items-center justify-center text-4xl font-bold cursor-pointer mb-2 transition-transform duration-300 hover:scale-110';
+            const themeColors = { classic: ['bg-blue-500', 'text-white'], 'wonder-woman': ['bg-yellow-500', 'text-blue-900'], 'iron-man': ['bg-cyan-400', 'text-gray-900'], batman: ['bg-yellow-400', 'text-black'] };
+            badge.classList.add(...themeColors[state.currentTheme]);
+        }
+        
+        // --- BULK ADD ---
+        function processBulkAdd() {
+            const text = document.getElementById('bulk-add-input').value;
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const currentChecklist = state.checklists[state.currentTheme];
+            
+            let path = []; // To keep track of the current hierarchy of items
+            
+            lines.forEach(line => {
+                const indent = line.match(/^\s*/)[0].length / 2; // Assuming 2 spaces per indent level
+                const content = line.trim();
+                const match = content.match(/^([^:]+):\s*(.*)$/);
+                if (!match) return;
+
+                const title = match[2].trim();
+                if (!title) return;
+
+                const newItem = { title, children: [], collapsed: false, notes: { text: '', attachments: [] } };
+                
+                path.length = indent;
+                
+                if (indent === 0) {
+                    currentChecklist.push(newItem);
+                    path.push(currentChecklist[currentChecklist.length - 1]);
+                } else {
+                    let parent = path[indent - 1];
+                    if (parent) {
+                        if (!parent.children) parent.children = [];
+                        parent.children.push(newItem);
+                        path.push(parent.children[parent.children.length - 1]);
+                    }
+                }
+            });
+            
+            renderChecklist();
+            saveState();
+            closeModal('bulk-add-modal');
+        }
+
+        // --- UTILITY FUNCTIONS ---
+        function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
+        function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
+        function getItemByIndices(indices) {
+            let items = state.checklists[state.currentTheme];
+            let item = null;
+            for (const index of indices) {
+                if (!items || !items[index]) return null;
+                item = items[index];
+                items = item.children;
+            }
+            return item;
+        }
+        function deleteItemByIndices(indices) {
+            let parent = { children: state.checklists[state.currentTheme] };
+            for (let i = 0; i < indices.length - 1; i++) parent = parent.children[indices[i]];
+            parent.children.splice(indices[indices.length - 1], 1);
+        }
+        function filterChecklist(nodes, term) {
+            return nodes.map(node => ({...node})).filter(node => {
+                if (node.children) node.children = filterChecklist(node.children, term);
+                return node.title.toLowerCase().includes(term) || (node.children && node.children.length > 0);
+            });
+        }
+        function showLevelUpModal(level) {
+            document.getElementById('new-level-display').textContent = level;
+            openModal('level-up-modal');
+            document.getElementById('achievement-badge').classList.add('celebrate');
+            setTimeout(() => document.getElementById('achievement-badge').classList.remove('celebrate'), 800);
+        }
+        function openCalendarNoteModal(dateStr) {
+            currentCalendarDate = dateStr;
+            const bookmark = state.calendar.bookmarks[dateStr] || { note: '' };
+            document.getElementById('calendar-note-title').textContent = new Date(dateStr + 'T00:00:00').toDateString();
+            document.getElementById('calendar-note-input').value = bookmark.note;
+            openModal('calendar-note-modal');
+        }
+
+        // --- INITIALIZATION & EVENT LISTENERS ---
+        function init() {
+            loadState();
+            applyTheme(state.currentTheme);
+            
+            // Restore running stopwatch
+            if (state.stopwatch.isRunning) {
+                stopwatchInterval = setInterval(updateStopwatchDisplay, 1000);
+            }
+            updateStopwatchDisplay();
+
+
+            // Global Listeners
+            document.getElementById('theme-switcher').addEventListener('click', e => { if (e.target.matches('.theme-btn')) { applyTheme(e.target.dataset.theme); saveState(); } });
+            document.getElementById('add-subject-btn').addEventListener('click', () => {
+                state.checklists[state.currentTheme].push({ title: 'New Subject', collapsed: false, children: [], notes: { text: '', attachments: [] } });
+                renderChecklist();
+                saveState();
+            });
+            document.getElementById('search-bar').addEventListener('input', e => renderChecklist(e.target.value));
+            document.getElementById('main-title').addEventListener('blur', e => { state.mainTitle = e.target.textContent; saveState(); });
+            document.getElementById('main-quote').addEventListener('blur', e => { state.achievements[state.currentTheme].mainQuote = e.target.textContent; saveState(); });
+
+            // Focus Listeners
+            document.getElementById('focus-25').addEventListener('click', () => startFocusSession(25));
+            document.getElementById('focus-50').addEventListener('click', () => startFocusSession(50));
+            
+            // Calendar Listeners
+            document.getElementById('prev-month').addEventListener('click', () => { const d = new Date(state.calendar.date); d.setMonth(d.getMonth() - 1); state.calendar.date = d.toISOString(); renderCalendar(); saveState(); });
+            document.getElementById('next-month').addEventListener('click', () => { const d = new Date(state.calendar.date); d.setMonth(d.getMonth() + 1); state.calendar.date = d.toISOString(); renderCalendar(); saveState(); });
+            document.getElementById('save-calendar-note').addEventListener('click', () => {
+                if (!currentCalendarDate) return;
+                state.calendar.bookmarks[currentCalendarDate] = { note: document.getElementById('calendar-note-input').value };
+                renderCalendar();
+                saveState();
+                closeModal('calendar-note-modal');
+            });
+            document.getElementById('delete-calendar-note').addEventListener('click', () => {
+                if (!currentCalendarDate) return;
+                delete state.calendar.bookmarks[currentCalendarDate];
+                renderCalendar();
+                saveState();
+                closeModal('calendar-note-modal');
+            });
+            document.getElementById('close-calendar-note-modal').addEventListener('click', () => closeModal('calendar-note-modal'));
+
+            // Notes Modal Listeners
+            document.getElementById('close-notes-modal').addEventListener('click', () => { saveNotes(); closeModal('notes-modal'); });
+            document.getElementById('item-note-text').addEventListener('blur', saveNotes);
+            document.getElementById('add-link-btn').addEventListener('click', () => {
+                const url = document.getElementById('attachment-input').value.trim();
+                if (url && currentEditingIndices) {
+                    const item = getItemByIndices(currentEditingIndices);
+                    if (!item.notes.attachments) item.notes.attachments = [];
+                    item.notes.attachments.push({ type: 'link', url });
+                    renderAttachments(item.notes.attachments);
+                    saveState();
+                    document.getElementById('attachment-input').value = '';
+                }
+            });
+            document.getElementById('attachments-container').addEventListener('click', e => {
+                if (e.target.classList.contains('delete-attachment-btn')) {
+                    const index = e.target.dataset.index;
+                    const item = getItemByIndices(currentEditingIndices);
+                    item.notes.attachments.splice(index, 1);
+                    renderAttachments(item.notes.attachments);
+                    saveState();
+                } else if (e.target.classList.contains('play-youtube-btn')) {
+                    try {
+                        const videoId = new URL(e.target.dataset.url).searchParams.get('v');
+                        if (videoId) {
+                            document.getElementById('youtube-player-container').innerHTML = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                            openModal('youtube-player-modal');
+                        }
+                    } catch (error) {
+                        console.error("Invalid YouTube URL:", error);
+                        alert("Please enter a valid YouTube URL.");
+                    }
+                }
+            });
+            document.getElementById('close-youtube-modal').addEventListener('click', () => {
+                document.getElementById('youtube-player-container').innerHTML = '';
+                closeModal('youtube-player-modal');
+            });
+
+            // Other Modal Listeners
+            document.getElementById('bulk-add-btn').addEventListener('click', () => openModal('bulk-add-modal'));
+            document.getElementById('close-bulk-add-modal').addEventListener('click', () => closeModal('bulk-add-modal'));
+            document.getElementById('process-bulk-add').addEventListener('click', processBulkAdd);
+            document.getElementById('achievement-badge').addEventListener('click', () => {
+                const quoteList = document.getElementById('quote-list');
+                quoteList.innerHTML = '';
+                const themeQuotes = quotes[state.currentTheme];
+                const themeAchievements = state.achievements[state.currentTheme];
+                themeQuotes.forEach((quote, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'p-2 border-b border-theme';
+                    li.textContent = `"${quote}"`;
+                    if (index > themeAchievements.level) {
+                        li.classList.add('text-secondary', 'italic');
+                        li.textContent += ' (Locked)';
+                    } else {
+                         li.classList.add('text-primary');
+                    }
+                    quoteList.appendChild(li);
+                });
+                openModal('quote-modal');
+            });
+            document.getElementById('close-quote-modal').addEventListener('click', () => closeModal('quote-modal'));
+            document.getElementById('close-level-up-modal').addEventListener('click', () => closeModal('level-up-modal'));
+        }
+
+        init();
+    });
     </script>
 </body>
 </html>
