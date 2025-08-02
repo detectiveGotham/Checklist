@@ -429,6 +429,8 @@
                 const now = Date.now();
                 const totalElapsedTime = state.stopwatch.elapsedTime + (now - state.stopwatch.startTime);
                 stopwatchDisplay.textContent = formatTime(totalElapsedTime);
+            } else {
+                stopwatchDisplay.textContent = formatTime(state.stopwatch.elapsedTime);
             }
         }
 
